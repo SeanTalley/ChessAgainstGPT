@@ -36,6 +36,8 @@ async function aiMove(invalidString = "") {
   if(invalidString != "")
     prompt_text += `\n\n${invalidString}\n\nThe previous move attempt was invalid due to no piece being present at the specified start square or the move was not legal. The valid moves are [${validMoves}]. Please suggest a new move:`;
 
+  document.getElementById('ai-thoughts').textContent = prompt_text;
+
   const data = {
     "model": "text-davinci-003",
     "prompt": prompt_text,
