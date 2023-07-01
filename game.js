@@ -78,16 +78,21 @@ async function aiMove(invalidString = "") {
 function checkGameStatus() {
   if (game.in_checkmate()) {
     alert('Checkmate');
+	return;
   } else if (game.in_draw()) {
     let drawReason = '50-move rule';
     if (game.insufficient_material()) {
       drawReason = 'Insufficient material';
+	  return;
     } else if (game.in_threefold_repetition()) {
       drawReason = 'Threefold repetition';
+	  return;
     } else if (game.in_stalemate()) {
       drawReason = 'Stalemate';
+	  return;
     }
     alert(`Draw (${drawReason})`);
+	return;
   }
   aiMove();
 }
