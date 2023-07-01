@@ -1,5 +1,3 @@
-var OpenAIApiKey = "{API KEY GOES HERE}"
-
 // Initialize new game and board
 var game = new Chess();
 var board = Chessboard('board', 'start');
@@ -8,6 +6,10 @@ var board = Chessboard('board', 'start');
 function onDragStart (source, piece, position, orientation) {
   // Do not pick up pieces if the game is over or it's not that side's turn
   if (game.game_over() || (game.turn() === 'w' && piece.search(/^b/) !== -1) || (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+    return false;
+  }
+  if(document.getElementById('api-key').value === "") {
+	alert('Please enter a valid API Key');
     return false;
   }
 }
@@ -31,12 +33,14 @@ function onDrop (source, target) {
 async function aiMove(invalidString = "") {
   const FEN = game.fen();
   const validMoves = game.moves().join(", ");
-  let prompt_text = `You are an AI assistant trained to suggest the next move in a game of chess. You are currently suggesting a move for the black pieces. The current board state in FEN (Forsyth-Edwards Notation) is \"${FEN}\". The valid moves are [${validMoves}]. Your objective is to help achieve a winning position, while adhering to the rules of chess. Please provide your move in algebraic notation (e.g., "e2e4").\n\nYour suggested move is:`;
-  
+  const apiKey = document.getElementById('api-key').value;
+  let promptText = document.getElementById('prompt-text').value;
+  let prompt_text = promptText.replace('{FEN}', FEN).replace('{validMoves}', validMoves);
+
   if(invalidString != "")
     prompt_text += `\n\n${invalidString}\n\nThe previous move attempt was invalid due to no piece being present at the specified start square or the move was not legal. The valid moves are [${validMoves}]. Please suggest a new move:`;
 
-  document.getElementById('ai-thoughts').textContent = prompt_text;
+	document.getElementById('ai-thoughts').textContent = prompt_text;
 
   const data = {
     "model": "text-davinci-003",
@@ -52,7 +56,7 @@ async function aiMove(invalidString = "") {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + OpenAIApiKey
+      'Authorization': `Bearer ${apiKey}`
     },
     body: JSON.stringify(data)
   };
@@ -60,9 +64,9 @@ async function aiMove(invalidString = "") {
   const response = await fetch('https://api.openai.com/v1/completions', options);
   const jsonResponse = await response.json();
   let move = jsonResponse.choices[0].text.trim();
-  move = move.replace(/\n/g, '');  // Remove newline characters
-  move = move.replace(/['"]/g, '');  // Remove both single and double quotes
-  move = move.replace(/\./g, '');  // Remove period
+  //move = move.replace(/\n/g, '');  // Remove newline characters
+  //move = move.replace(/['"]/g, '');  // Remove both single and double quotes
+  //move = move.replace(/\./g, '');  // Remove period
 
   let moveResult = game.move(move, {sloppy: true});
 
